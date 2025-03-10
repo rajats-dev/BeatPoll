@@ -3,6 +3,8 @@ import { songs } from "./data/musicList.js";
 import { io } from "./index.js";
 
 class MusicManager {
+  public currentSong: any = [];
+
   upvote(socket: Socket) {
     socket.on("vote_for_songs", (songId) => {
       const song = songs.find((sng) => sng.id == songId);
@@ -12,6 +14,10 @@ class MusicManager {
         io.emit("updated_votes", updateSongs);
       }
     });
+  }
+  playNextSong(socket: Socket) {
+    this.currentSong = songs.sort((a, b) => b.vote - a.vote)[0];
+    setTimeout(() => this.playNextSong, 3000);
   }
 }
 

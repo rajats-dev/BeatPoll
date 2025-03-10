@@ -1,16 +1,23 @@
-"use client";
-import { list, useSocketContext } from "../context/SocketContext";
+// "use client";
+// import { list, useSocketContext } from "../context/SocketContext";
 
-export default function Home() {
-  const { socket, songsList } = useSocketContext();
+import { getServerSession } from "next-auth";
+import { authOptions } from "./api/auth/[...nextauth]/options";
+import AuthScreen from "@/features/auth/components/auth-screen";
 
-  const handleUpvote = (id: number) => {
-    socket?.emit("vote_for_songs", id);
-  };
+export default async function Home() {
+  const session = await getServerSession(authOptions);
+
+  // const { socket, songsList } = useSocketContext();
+  // const handleUpvote = (id: number) => {
+  //   socket?.emit("vote_for_songs", id);
+  // };
+
+  return <>{!session?.user && <AuthScreen />}</>;
 
   return (
     <div>
-      {songsList?.map((item: list, i) => {
+      {/* {songsList?.map((item: list, i) => {
         return (
           <div
             key={i}
@@ -23,7 +30,7 @@ export default function Home() {
             </div>
           </div>
         );
-      })}
+      })} */}
     </div>
   );
 }
