@@ -14,31 +14,38 @@ datasource db {
 }
 
 model User {
-  id       String   @id @default(uuid())
-  email    String
-  provider Provider
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique @db.VarChar(191)
+  provider   Provider
+  profilePic String?
+  streams    Stream[]
+  upvotes    Upvote[]
 
-  streams Stream[]
-  upvotes Upvote[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Stream {
-  id      String     @id @default(uuid())
-  type    StreamType
-  active  Boolean    @default(true)
-  upvotes Upvote[]
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String     @id @default(uuid())
+  type        StreamType
+  url         String
+  extractedId String
+  title       String
+  smallImg    String     @default("")
+  bigImg      String     @default("")
+  active      Boolean    @default(true)
+  upvotes     Upvote[]
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Upvote {
   id       String @id @default(uuid())
   userId   String
   streamId String
-
-  user   User   @relation(fields: [userId], references: [id])
-  stream Stream @relation(fields: [streamId], references: [id])
+  user     User   @relation(fields: [userId], references: [id])
+  stream   Stream @relation(fields: [streamId], references: [id])
 
   @@unique([userId, streamId])
 }

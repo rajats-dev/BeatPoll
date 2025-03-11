@@ -1,4 +1,6 @@
 import express, { Application, Request, Response } from "express";
+import authRoutes from "./routes/auth.routes.js";
+import messageRoutes from "./routes/streams.routes.js";
 import "dotenv/config";
 import cors from "cors";
 import { createServer } from "http";
@@ -23,6 +25,9 @@ const io = new Server(server, {
     origin: [process.env.CLIENT_URL],
   },
 });
+
+app.use("/api/auth", authRoutes);
+app.use("/api/messages", messageRoutes);
 
 initSocket(io);
 export { io };

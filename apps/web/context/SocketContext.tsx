@@ -1,4 +1,6 @@
 "use client";
+import { CustomSession } from "@/app/api/auth/[...nextauth]/options";
+import { useSession } from "next-auth/react";
 import { createContext, useContext, useState, useRef, useEffect } from "react";
 import { io, Socket } from "socket.io-client";
 
@@ -32,9 +34,15 @@ export const useSocketContext = () => {
 const SocketContextProvider = ({ children }: { children: React.ReactNode }) => {
   const socketRef = useRef<Socket | null>(null);
   const [songs, songList] = useState([]);
+  const { data } = useSession();
+  const session: CustomSession | null = data;
 
   useEffect(() => {
-    const socket = io(socketURL);
+    const socket = io(socketURL, {
+      query: {
+        userId: session?.user?.id,
+      },
+    });
     socketRef.current = socket;
 
     socket.emit("fetch_list");
@@ -52,7 +60,7 @@ const SocketContextProvider = ({ children }: { children: React.ReactNode }) => {
       socket.close();
       socketRef.current = null;
     };
-  }, []);
+  }, [session]);
 
   return (
     <SocketContext.Provider

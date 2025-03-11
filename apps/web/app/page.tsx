@@ -8,12 +8,14 @@ import AuthScreen from "@/features/auth/components/auth-screen";
 export default async function Home() {
   const session = await getServerSession(authOptions);
 
+  console.log(session);
+
   // const { socket, songsList } = useSocketContext();
   // const handleUpvote = (id: number) => {
   //   socket?.emit("vote_for_songs", id);
   // };
 
-  return <>{!session?.user && <AuthScreen />}</>;
+  return <div className="h-screen">{!session?.user && <AuthScreen />}</div>;
 
   return (
     <div>
