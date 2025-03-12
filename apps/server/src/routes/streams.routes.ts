@@ -3,6 +3,6 @@ import StreamController from "../controllers/streams.controller.js";
 
 const router = Router();
 
-router.post("/creaStream", StreamController.createStream);
+router.post("/createStream", StreamController.createStream);
 
 export default router;

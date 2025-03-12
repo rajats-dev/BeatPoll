@@ -28,24 +28,16 @@ const SignUpCard = ({ setState }: SignUpCardProps) => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Sign up to continue</CardTitle>
-        <CardDescription>
-          Use you email or another service to continue
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-2">
-        <Button
+    <div>
+      <div className="flex flex-col gap-2 w-full">
+        <button
           disabled={isLoading}
           onClick={handleGoogleLogin}
-          variant="outline"
-          size="lg"
-          className="w-full relative"
+          className="w-full relative border-s border-2 border-black"
         >
           <FcGoogle className="size-5 absolute left-2" />
           Continue with Google
-        </Button>
+        </button>
 
         <div>
           <p className="text-sm text-muted-foreground pt-10">
@@ -58,8 +50,8 @@ const SignUpCard = ({ setState }: SignUpCardProps) => {
             </span>
           </p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

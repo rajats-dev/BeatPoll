@@ -1,11 +1,13 @@
 import express, { Application, Request, Response } from "express";
 import authRoutes from "./routes/auth.routes.js";
-import messageRoutes from "./routes/streams.routes.js";
+import streamRoutes from "./routes/streams.routes.js";
 import "dotenv/config";
 import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { initSocket } from "./socket.js";
+import cookieParser from "cookie-parser";
+
 const app: Application = express();
 const PORT = process.env.PORT || 7000;
 
@@ -16,6 +18,7 @@ app.use(
     credentials: true,
   })
 );
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -27,7 +30,7 @@ const io = new Server(server, {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/messages", messageRoutes);
+app.use("/api/stream", streamRoutes);
 
 initSocket(io);
 export { io };

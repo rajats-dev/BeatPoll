@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import SocketContextProvider from "../context/SocketContext";
 import SessionProvider from "../provider/SessionProvider";
+import { ModalProvider } from "@/provider/ModalProvider";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -18,7 +19,10 @@ export default function RootLayout({
     <html lang="en">
       <SessionProvider>
         <body>
-          <SocketContextProvider>{children}</SocketContextProvider>
+          <SocketContextProvider>
+            <ModalProvider />
+            {children}
+          </SocketContextProvider>
         </body>
       </SessionProvider>
     </html>
