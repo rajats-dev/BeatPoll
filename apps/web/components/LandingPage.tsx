@@ -1,28 +1,15 @@
 "use client";
 import Link from "next/link";
-import { Music, Users, Radio, Headphones } from "lucide-react";
+import { Users, Radio, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useModal } from "@/hooks/useModalStore";
+import Header from "./Header";
 
 export default function LandingPage() {
-  const { onOpen } = useModal();
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-950 via-teal-900 to-emerald-800">
       {/* Navigation */}
-      <header className="container mx-auto px-4 py-6 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <Music className="h-6 w-6 text-emerald-400" />
-          <span className="text-xl font-bold text-white">BeatPoll</span>
-        </div>
-        <Button
-          variant="outline"
-          className="bg-transparent border-emerald-400 text-white hover:bg-emerald-800"
-          onClick={() => onOpen("auth")}
-        >
-          Sign In
-        </Button>
-      </header>
+      <Header />
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">

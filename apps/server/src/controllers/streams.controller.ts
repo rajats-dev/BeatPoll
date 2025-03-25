@@ -17,9 +17,7 @@ class StreamController {
   static async createStream(req: Request, res: Response) {
     try {
       const data = req.body;
-      console.log("1--", data);
       const parseData = CreateStreamSchema.parse(data);
-      console.log("2---", parseData);
       const isYt = parseData.url.match(YT_REGEX);
       if (!isYt) {
         return res.status(411).json({ message: "Wrong Url Format" });
@@ -67,18 +65,102 @@ class StreamController {
     }
   }
 
-  static async getStream(req: Request, res: Response) {
+  static async getStream(creatorId: string, userId: string) {
     try {
-      const { creatorId } = req.params;
-      const streams = await prisma.stream.findMany({
-        where: {
-          userId: creatorId,
-        },
-      });
-      return res.status(200).json({ streams });
+      if (!creatorId) {
+        throw new Error("Creator Id not found");
+      }
+      const [streams, activeStream] = await Promise.all([
+        await prisma.stream.findMany({
+          where: {
+            userId: creatorId,
+            played: false,
+          },
+          include: {
+            _count: {
+              select: {
+                upvotes: true,
+              },
+            },
+            upvotes: {
+              where: {
+                userId: userId,
+              },
+            },
+          },
+        }),
+        await prisma.currentStream.findFirst({
+          where: {
+            userId: creatorId,
+          },
+          include: {
+            stream: true,
+          },
+        }),
+      ]);
+
+      // console.log("---", streams);
+
+      const stream = streams.map(({ _count, ...rest }) => ({
+        ...rest,
+        upvotes: _count.upvotes,
+        haveUpvoted: rest.upvotes.length ? true : false,
+      }));
+
+      return { stream, activeStream };
     } catch (error) {
       console.log(error);
-      return res.status(411).json({ message: "Error while adding Stream!" });
+    }
+  }
+
+  static async nextStream(req: Request, res: Response) {
+    const userId = req.user.id;
+
+    try {
+      if (!userId) {
+        throw new Error("User Id not found");
+      }
+      const mostUpvotedStream = await prisma.stream.findFirst({
+        where: {
+          userId: userId,
+          played: false,
+        },
+        orderBy: {
+          upvotes: {
+            _count: "desc",
+          },
+        },
+      });
+      await Promise.all([
+        prisma.currentStream.upsert({
+          where: {
+            userId: userId,
+          },
+          update: {
+            userId: userId,
+            streamId: mostUpvotedStream?.id,
+          },
+          create: {
+            userId: userId,
+            streamId: mostUpvotedStream?.id,
+          },
+        }),
+        prisma.stream.update({
+          where: {
+            id: mostUpvotedStream?.id ?? "",
+          },
+          data: {
+            played: true,
+            playedTs: new Date(),
+          },
+        }),
+      ]);
+
+      return res.json({
+        stream: mostUpvotedStream,
+      });
+    } catch (error) {
+      console.log(error);
     }
   }
 }

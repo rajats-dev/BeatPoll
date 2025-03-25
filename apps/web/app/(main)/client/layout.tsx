@@ -1,6 +1,7 @@
 import type React from "react";
 import { Music, Home, Library, Settings, Users } from "lucide-react";
 import Link from "next/link";
+import Header from "@/components/Header";
 
 export default function DashboardLayout({
   children,
@@ -10,7 +11,7 @@ export default function DashboardLayout({
   return (
     <div className="flex h-screen bg-gradient-to-br from-emerald-950 via-teal-900 to-emerald-800">
       {/* Sidebar */}
-      <div className="w-16 md:w-64 bg-emerald-950/70 border-r border-emerald-800 flex flex-col">
+      {/* <div className="w-16 md:w-64 bg-emerald-950/70 border-r border-emerald-800 flex flex-col">
         <div className="p-4 border-b border-emerald-800 flex items-center">
           <Music className="h-6 w-6 text-emerald-400 mr-2" />
           <span className="text-xl font-bold text-white hidden md:block">
@@ -70,10 +71,13 @@ export default function DashboardLayout({
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Main content */}
-      <div className="flex-1 overflow-auto">{children}</div>
+      <div className="flex-1 overflow-auto">
+        <Header />
+        {children}
+      </div>
     </div>
   );
 }

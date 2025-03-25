@@ -1,12 +1,11 @@
 import StreamView from "@/components/StreamView";
 
-export default function Creator({
-  params: { creatorId },
+export default async function Creator({
+  params,
 }: {
-  params: {
-    creatorId: string;
-  };
+  params: Promise<{ creatorId: string }>;
 }) {
+  const { creatorId } = await params;
   return (
     <div>
       <StreamView creatorId={creatorId} playVideo={false} />

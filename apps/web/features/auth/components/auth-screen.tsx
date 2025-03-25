@@ -16,12 +16,6 @@ const AuthScreen = () => {
   const isModalOpen = isOpen && type == "auth";
 
   return (
-    // <div className="h-full flex items-center justify-center">
-    //   <div className="h-auto md:w-[420px]">
-    //     <SignUpCard setState={setPageState} />
-    //   </div>
-    // </div>
-
     <Dialog open={isModalOpen} onOpenChange={onClose}>
       <DialogContent onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>

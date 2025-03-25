@@ -10,20 +10,26 @@ import React, { useState } from "react";
 import { SingInFlow } from "../types";
 import { signIn } from "next-auth/react";
 import { FcGoogle } from "react-icons/fc";
+import { usePathname } from "next/navigation";
 
 interface SignUpCardProps {
   setState: (state: SingInFlow) => void;
 }
 
 const SignUpCard = ({ setState }: SignUpCardProps) => {
+  const pathname = usePathname();
   const [isLoading, setloading] = useState(false);
 
   const handleGoogleLogin = async () => {
     setloading(true);
-    await signIn("google", {
-      redirect: true,
-      callbackUrl: "/client",
-    });
+    if (pathname.startsWith("/client/creator")) {
+      await signIn("google");
+    } else {
+      await signIn("google", {
+        redirect: true,
+        callbackUrl: "/client",
+      });
+    }
     setloading(false);
   };
 

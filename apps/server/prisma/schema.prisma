@@ -19,7 +19,7 @@ model User {
   email      String   @unique @db.VarChar(191)
   provider   Provider
   profilePic String?
-  streams    Stream[]
+  streams    Stream[] @relation("user")
   upvotes    Upvote[]
 
   createdAt DateTime @default(now())
@@ -27,17 +27,27 @@ model User {
 }
 
 model Stream {
-  id          String     @id @default(uuid())
-  type        StreamType
-  url         String
-  extractedId String
-  title       String
-  smallImg    String     @default("")
-  bigImg      String     @default("")
-  active      Boolean    @default(true)
-  upvotes     Upvote[]
-  userId      String
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String         @id @default(uuid())
+  type          StreamType
+  url           String
+  extractedId   String
+  title         String
+  smallImg      String         @default("")
+  bigImg        String         @default("")
+  active        Boolean        @default(true)
+  played        Boolean        @default(false)
+  playedTs      DateTime?
+  createAt      DateTime       @default(now())
+  upvotes       Upvote[]
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade, name: "user")
+  currentStream CurrentStream?
+}
+
+model CurrentStream {
+  userId   String  @id
+  streamId String? @unique
+  stream   Stream? @relation(fields: [streamId], references: [id])
 }
 
 model Upvote {
@@ -45,7 +55,7 @@ model Upvote {
   userId   String
   streamId String
   user     User   @relation(fields: [userId], references: [id])
-  stream   Stream @relation(fields: [streamId], references: [id])
+  stream   Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
 
   @@unique([userId, streamId])
 }

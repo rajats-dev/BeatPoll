@@ -4,6 +4,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]/options";
 import LandingPage from "@/components/LandingPage";
+import Header from "@/components/Header";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -17,7 +18,11 @@ export default async function Home() {
 
   // return <div className="h-screen">{!session?.user && <AuthScreen />}</div>;
 
-  return <LandingPage />;
+  return (
+    <main>
+      <LandingPage />;
+    </main>
+  );
 }
 
 // return (

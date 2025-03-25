@@ -11,8 +11,9 @@ import {
   Settings,
   Pause,
   Share2,
+  Loader2,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import LiteYouTubeEmbed from "react-lite-youtube-embed";
 import { YT_REGEX } from "@/lib/utils";
@@ -20,20 +21,9 @@ import { useSession } from "next-auth/react";
 import { CustomSession } from "@/app/api/auth/[...nextauth]/options";
 import { toast, ToastContainer } from "react-toastify";
 import { STREAM_URL } from "@/lib/apiAuthRoute";
-
-interface Video {
-  id: string;
-  type: string;
-  url: string;
-  extractedId: string;
-  title: string;
-  smallImg: string;
-  bigImg: string;
-  active: boolean;
-  userId: string;
-  upvotes: number;
-  haveUpvoted: boolean;
-}
+import useStreamQueue, { Video } from "@/hooks/state/useStreamQueue";
+import useListenStreams from "@/hooks/socketQueries/useListenStreams";
+import { useSocketContext } from "@/context/SocketContext";
 
 export default function StreamView({
   creatorId,
@@ -42,34 +32,53 @@ export default function StreamView({
   creatorId: string;
   playVideo: boolean;
 }) {
+  const { socket } = useSocketContext();
   const [inputLink, setInputLink] = useState("");
-  const [queue, setQueue] = useState<Video[]>([]);
+  const { queue, setQueue } = useStreamQueue();
   const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(false);
   const [playNextLoader, setPlayNextLoader] = useState(false);
   const videoPlayerRef = useRef<HTMLDivElement | null>(null);
+  const { data } = useSession();
+  const session: CustomSession | null = data;
+  useListenStreams(setCurrentVideo);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const res = await fetch(`${STREAM_URL}/createStream`, {
-      method: "POST",
-      credentials: "include",
-      body: JSON.stringify({
-        creatorId: creatorId,
-        url: inputLink,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    setQueue([...queue, await res.json()]);
-    setLoading(false);
-    setInputLink("");
+    try {
+      const res = await fetch(`${STREAM_URL}/createStream`, {
+        method: "POST",
+        body: JSON.stringify({
+          creatorId: creatorId,
+          url: inputLink,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      setQueue([...queue, await res.json()]);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoading(false);
+      setInputLink("");
+    }
   };
 
+  useEffect(() => {
+    if (creatorId && socket) {
+      socket.emit("fetch_stream_list", { creatorId: creatorId });
+    }
+    // setInterval(() => {
+    //   if (creatorId && socket) {
+    //     socket.emit("fetch_stream_list", { creatorId: creatorId });
+    //   }
+    // }, 10 * 1000);
+  }, [socket, creatorId]); // Only runs when `socket` is first initialized
+
   const handleShare = () => {
-    const shareableLink = `${window.location.hostname}/creator/${creatorId}`;
+    const shareableLink = `${window.location.origin}/client/creator/${creatorId}`;
     navigator.clipboard.writeText(shareableLink).then(
       () => {
         toast.success("Link copied to clipboard!", {
@@ -97,6 +106,47 @@ export default function StreamView({
     );
   };
 
+  const handleVote = (id: string, isUpvote: boolean) => {
+    const payload = queue
+      .map((video) =>
+        video.id === id
+          ? {
+              ...video,
+              upvotes: isUpvote ? video.upvotes + 1 : video.upvotes - 1,
+              haveUpvoted: !video.haveUpvoted,
+            }
+          : video
+      )
+      .sort((a, b) => b.upvotes - a.upvotes);
+    setQueue(payload);
+
+    socket?.emit(`${isUpvote ? "upvote" : "downvote"}`, {
+      streamId: id,
+      userId: session?.user?.id,
+      creatorId: creatorId,
+    });
+  };
+
+  const playNext = async () => {
+    if (queue.length > 0) {
+      try {
+        setPlayNextLoader(true);
+        const data = await fetch(`${STREAM_URL}/next`, {
+          method: "GET",
+          headers: { Authorization: session?.user?.token || "" },
+          credentials: "include",
+        });
+        const json = await data.json();
+        setCurrentVideo(json.stream);
+        const filterqueue = queue.filter((x) => x.id !== json.stream?.id);
+        setQueue(filterqueue);
+      } catch (e) {
+        console.log(e);
+      }
+      setPlayNextLoader(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-950 via-teal-900 to-emerald-800 text-white p-6">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mt-32">
@@ -107,7 +157,7 @@ export default function StreamView({
           </div>
           <div className="space-y-4">
             <div className="bg-emerald-900/60 rounded-lg overflow-hidden">
-              <div>
+              <div className="flex gap-4 flex-col">
                 {queue.length === 0 && (
                   <Card className="bg-emerald-500 hover:bg-emerald-600 w-full">
                     <CardContent className="p-4">
@@ -119,28 +169,34 @@ export default function StreamView({
                 )}
 
                 {queue.map((video) => (
-                  <Card
-                    key={video.id}
-                    className="bg-emerald-500 hover:bg-emerald-600"
-                  >
-                    <CardContent className="p-4 flex items-center space-x-4">
-                      <Image
-                        src={video.smallImg}
-                        width={500}
-                        height={500}
-                        alt={`Thumbnail for ${video.title}`}
-                        className="w-30 h-20 object-cover rounded"
-                      />
-                      <div className="flex-grow">
-                        <h3 className="font-semibold text-white">
+                  <Card key={video.id} className="bg-emerald-500">
+                    <CardContent className="p-4 grid grid-cols-[220px,auto] space-x-4">
+                      {video.smallImg ? (
+                        <Image
+                          src={video.smallImg}
+                          width={210}
+                          height={210}
+                          alt={`Thumbnail for ${video.title}`}
+                          className="object-contain rounded"
+                        />
+                      ) : (
+                        <div className="m-auto">
+                          <Loader2 className="text-white animate-spin" />
+                        </div>
+                      )}
+                      <div className="grid grid-cols-[auto,80px]">
+                        <h3 className="font-semibold text-white p-2 pr-5">
                           {video.title}
                         </h3>
-                        <div className="flex items-center space-x-2 mt-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            // onClick={() => handleVote(video.id, video.haveUpvoted ? false : true)}
-                            className="flex items-center space-x-1 bg-gray-800 text-white border-gray-700 hover:bg-gray-700"
+                        <div className="my-auto flex items-center justify-center h-1/2 px-3 bg-emerald-800/30 rounded-lg">
+                          <button
+                            onClick={() =>
+                              handleVote(
+                                video.id,
+                                video.haveUpvoted ? false : true
+                              )
+                            }
+                            className="flex gap-2 items-center hover:text-emerald-400"
                           >
                             {video.haveUpvoted ? (
                               <ChevronDown className="h-4 w-4" />
@@ -148,7 +204,7 @@ export default function StreamView({
                               <ChevronUp className="h-4 w-4" />
                             )}
                             <span>{video.upvotes}</span>
-                          </Button>
+                          </button>
                         </div>
                       </div>
                     </CardContent>
@@ -192,11 +248,12 @@ export default function StreamView({
           </div>
 
           {inputLink && inputLink.match(YT_REGEX) && !loading && (
-            <Card className="bg-emerald-500 hover:bg-emerald-600">
+            <Card className="bg-emerald-500 hover:bg-emerald-600 h-fit">
               <CardContent className="p-4">
                 <LiteYouTubeEmbed
                   title=""
                   id={inputLink.split("?v=")[1] || ""}
+                  aspectHeight={20}
                 />
               </CardContent>
             </Card>
@@ -211,8 +268,13 @@ export default function StreamView({
                   <div>
                     {playVideo ? (
                       <>
-                        <div ref={videoPlayerRef} className="w-full" />
-                        {/* <iframe width={"100%"} height={300} src={`https://www.youtube.com/embed/${currentVideo.extractedId}?autoplay=1`} allow="autoplay"></iframe> */}
+                        {/* <div ref={videoPlayerRef} className="w-full" /> */}
+                        <iframe
+                          width={"100%"}
+                          height={300}
+                          src={`https://www.youtube.com/embed/${currentVideo.extractedId}?autoplay=1`}
+                          allow="autoplay"
+                        ></iframe>
                       </>
                     ) : (
                       <>
@@ -239,7 +301,7 @@ export default function StreamView({
             {playVideo && (
               <Button
                 disabled={playNextLoader}
-                // onClick={playNext}
+                onClick={playNext}
                 className="w-full  bg-emerald-500 hover:bg-emerald-600 text-white"
               >
                 <Play className="mr-2 h-4 w-4" />{" "}

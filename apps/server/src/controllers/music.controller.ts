@@ -1,59 +1,60 @@
 import prisma from "../config/db.config.js";
 import { CustomSocket } from "../socket.js";
-import { z } from "zod";
+import { TypeOf, z } from "zod";
 
-const UpvoteSchema = z.object({
+const voteSchema = z.object({
   streamId: z.string(),
+  userId: z.string(),
+  creatorId: z.string(),
 });
 
+export type VoteType = z.infer<typeof voteSchema>;
+
 class MusicManager {
-  upvote(socket: CustomSocket) {
-    socket.on("upvote", async (payload) => {
-      const user = await prisma.user.findFirst({
-        where: { id: socket.userId },
+  async upvote(payload: VoteType) {
+    // const user = await prisma.user.findFirst({
+    //   where: { id: payload.userId },
+    // });
+
+    // if (!user) {
+    //   return new Error("User does not exist!");
+    // }
+
+    try {
+      const data = voteSchema.parse(payload);
+      const res = await prisma.upvote.create({
+        data: {
+          userId: data.userId,
+          streamId: data.streamId,
+        },
       });
+      return res;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  async downVote(payload: VoteType) {
+    // const user = await prisma.user.findFirst({
+    //   where: { id: payload.userId },
+    // });
 
-      if (!user) {
-        return new Error("User does not exist!");
-      }
+    // if (!user) {
+    //   return new Error("User does not exist!");
+    // }
 
-      try {
-        const data = UpvoteSchema.parse(payload);
-        await prisma.upvote.create({
-          data: {
-            userId: user.id,
+    try {
+      const data = voteSchema.parse(payload);
+      await prisma.upvote.delete({
+        where: {
+          userId_streamId: {
+            userId: data.userId,
             streamId: data.streamId,
           },
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    });
-  }
-  downVote(socket: CustomSocket) {
-    socket.on("downvote", async (payload) => {
-      const user = await prisma.user.findFirst({
-        where: { id: socket.userId },
+        },
       });
-
-      if (!user) {
-        return new Error("User does not exist!");
-      }
-
-      try {
-        const data = UpvoteSchema.parse(payload);
-        await prisma.upvote.delete({
-          where: {
-            userId_streamId: {
-              userId: user.id,
-              streamId: data.streamId,
-            },
-          },
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    });
+    } catch (error) {
+      console.log(error);
+    }
   }
 }
 
