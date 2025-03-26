@@ -24,6 +24,7 @@ import { STREAM_URL } from "@/lib/apiAuthRoute";
 import useStreamQueue, { Video } from "@/hooks/state/useStreamQueue";
 import useListenStreams from "@/hooks/socketQueries/useListenStreams";
 import { useSocketContext } from "@/context/SocketContext";
+import YouTubePlayer from "youtube-player";
 
 export default function StreamView({
   creatorId,
@@ -47,7 +48,7 @@ export default function StreamView({
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(`${STREAM_URL}/createStream`, {
+      await fetch(`${STREAM_URL}/createStream`, {
         method: "POST",
         body: JSON.stringify({
           creatorId: creatorId,
@@ -57,7 +58,7 @@ export default function StreamView({
           "Content-Type": "application/json",
         },
       });
-      setQueue([...queue, await res.json()]);
+      // setQueue([...queue, await res.json()]);
     } catch (e) {
       console.log(e);
     } finally {
@@ -76,6 +77,34 @@ export default function StreamView({
     //   }
     // }, 10 * 1000);
   }, [socket, creatorId]); // Only runs when `socket` is first initialized
+
+  useEffect(() => {
+    if (!videoPlayerRef.current) {
+      return;
+    }
+    const player = YouTubePlayer(videoPlayerRef.current);
+
+    // 'loadVideoById' is queued until the player is ready to receive API calls.
+    player.loadVideoById(currentVideo?.extractedId || "");
+
+    // 'playVideo' is queue until the player is ready to received API calls and after 'loadVideoById' has been called.
+    player.playVideo();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function eventHandler(event: any) {
+      // console.log(event);
+      // console.log(event.data);
+      if (event.data === 0) {
+        playNext();
+      }
+    }
+
+    player.on("stateChange", eventHandler);
+    return () => {
+      player.destroy();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentVideo, videoPlayerRef]);
 
   const handleShare = () => {
     const shareableLink = `${window.location.origin}/client/creator/${creatorId}`;
@@ -131,15 +160,15 @@ export default function StreamView({
     if (queue.length > 0) {
       try {
         setPlayNextLoader(true);
-        const data = await fetch(`${STREAM_URL}/next`, {
+        await fetch(`${STREAM_URL}/next`, {
           method: "GET",
           headers: { Authorization: session?.user?.token || "" },
           credentials: "include",
         });
-        const json = await data.json();
-        setCurrentVideo(json.stream);
-        const filterqueue = queue.filter((x) => x.id !== json.stream?.id);
-        setQueue(filterqueue);
+        // const json = await data.json();
+        // setCurrentVideo(json.stream);
+        // const filterqueue = queue.filter((x) => x.id !== json.stream?.id);
+        // setQueue(filterqueue);
       } catch (e) {
         console.log(e);
       }
@@ -148,16 +177,18 @@ export default function StreamView({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-950 via-teal-900 to-emerald-800 text-white p-6">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mt-32">
+    <div className="from-emerald-950 via-teal-900 to-emerald-800 text-white p-2">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mt-14">
         {/* Upcoming Songs Section */}
         <div className="lg:col-span-2 ">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">Upcoming Songs</h1>
           </div>
           <div className="space-y-4">
-            <div className="bg-emerald-900/60 rounded-lg overflow-hidden">
-              <div className="flex gap-4 flex-col">
+            <div className="bg-emerald-900/60 rounded-lg overflow-auto list">
+              <div
+                className={`flex gap-4 flex-col ${queue.length > 5 ? "h-[820px]" : "h-fit"}`}
+              >
                 {queue.length === 0 && (
                   <Card className="bg-emerald-500 hover:bg-emerald-600 w-full">
                     <CardContent className="p-4">
@@ -169,7 +200,7 @@ export default function StreamView({
                 )}
 
                 {queue.map((video) => (
-                  <Card key={video.id} className="bg-emerald-500">
+                  <Card key={video.id} className=" bg-emerald-500">
                     <CardContent className="p-4 grid grid-cols-[220px,auto] space-x-4">
                       {video.smallImg ? (
                         <Image
@@ -238,7 +269,6 @@ export default function StreamView({
               />
               <Button
                 disabled={loading}
-                // onClick={handleSubmit}
                 type="submit"
                 className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
               >
@@ -253,7 +283,6 @@ export default function StreamView({
                 <LiteYouTubeEmbed
                   title=""
                   id={inputLink.split("?v=")[1] || ""}
-                  aspectHeight={20}
                 />
               </CardContent>
             </Card>
@@ -265,16 +294,16 @@ export default function StreamView({
             <Card className=" bg-emerald-500 hover:bg-emerald-600">
               <CardContent className="p-4">
                 {currentVideo ? (
-                  <div>
+                  <div className="h-fit">
                     {playVideo ? (
                       <>
-                        {/* <div ref={videoPlayerRef} className="w-full" /> */}
-                        <iframe
+                        <div ref={videoPlayerRef} className="w-full" />
+                        {/* <iframe
                           width={"100%"}
                           height={300}
                           src={`https://www.youtube.com/embed/${currentVideo.extractedId}?autoplay=1`}
                           allow="autoplay"
-                        ></iframe>
+                        ></iframe> */}
                       </>
                     ) : (
                       <>

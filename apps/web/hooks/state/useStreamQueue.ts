@@ -16,12 +16,15 @@ export interface Video {
 
 interface StreamData {
   queue: Video[];
-  setQueue: (data: Video[]) => void;
+  setQueue: (update: Video[] | ((prevQueue: Video[]) => Video[])) => void;
 }
 
 const useStreamQueue = create<StreamData>((set) => ({
   queue: [],
-  setQueue: (data: Video[]) => set({ queue: data }),
+  setQueue: (update) =>
+    set((state) => ({
+      queue: typeof update === "function" ? update(state.queue) : update,
+    })),
 }));
 
 export default useStreamQueue;

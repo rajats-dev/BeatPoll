@@ -7,6 +7,12 @@ export interface CustomSocket extends Socket {
   userId?: string;
 }
 
+export const getSocketId = (receiverId: string) => {
+  return socketMap.get(receiverId);
+};
+
+export const socketMap = new Map();
+
 export const initSocket = (io: Server) => {
   io.use((socket: CustomSocket, next) => {
     const userId = socket.handshake.query.userId as string;
@@ -45,6 +51,8 @@ export const initSocket = (io: Server) => {
   };
 
   io.on("connection", (socket: CustomSocket) => {
+    socketMap.set(socket.userId, socket.id);
+
     console.log(`Client connected: ${socket.id} || useId: ${socket.userId}`);
 
     socket.on("fetch_stream_list", async (payload) => {

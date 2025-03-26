@@ -2,6 +2,8 @@ import { z } from "zod";
 import { Request, Response } from "express";
 import prisma from "../config/db.config.js";
 import youtubesearchapi from "youtube-search-api";
+import { io } from "../index.js";
+import { getSocketId, socketMap } from "../socket.js";
 
 const CreateStreamSchema = z.object({
   creatorId: z.string(),
@@ -41,7 +43,7 @@ class StreamController {
         return res.status(411).json({ message: "Already at limit" });
       }
 
-      const stream = await prisma.stream.create({
+      const streams = await prisma.stream.create({
         data: {
           userId: parseData.creatorId,
           url: parseData.url,
@@ -58,7 +60,29 @@ class StreamController {
             "https://us.123rf.com/450wm/fokaspokas/fokaspokas1901/fokaspokas190100268/115137255-associez-des-photos-des-fichiers-image-un-album-d-images-une-simple-ic%C3%B4ne-ic%C3%B4ne-noire-sur-fond.jpg",
         },
       });
-      return res.status(200).json({ ...stream, hasUpvoted: false, upvotes: 0 });
+
+      // socketMap.forEach((socketId, userId) => {
+      //   console.log("IDS", socketId, userId);
+
+      //   if (userId !== parseData.creatorId) {
+      //     console.log("emittedID ---", socketId);
+      //     io.to(socketId).emit("add_song", {
+      //       ...streams,
+      //       hasUpvoted: false,
+      //       upvotes: 0,
+      //     });
+      //   }
+      // });
+
+      io.emit("add_song", {
+        ...streams,
+        hasUpvoted: false,
+        upvotes: 0,
+      });
+
+      return res
+        .status(200)
+        .json({ ...streams, hasUpvoted: false, upvotes: 0 });
     } catch (error) {
       console.log(error);
       return res.status(411).json({ message: "Error while adding Stream!" });
@@ -155,6 +179,8 @@ class StreamController {
           },
         }),
       ]);
+
+      io.emit("next_song", { stream: mostUpvotedStream });
 
       return res.json({
         stream: mostUpvotedStream,
