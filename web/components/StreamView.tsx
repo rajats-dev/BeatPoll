@@ -183,7 +183,9 @@ export default function StreamView({
           <div className="space-y-4">
             <div className="bg-emerald-900/60 rounded-lg overflow-auto list">
               <div
-                className={`flex gap-4 flex-col ${queue.length > 5 ? "h-[820px]" : "h-fit"}`}
+                className={`flex gap-4 flex-col ${
+                  queue.length > 5 ? "h-[820px]" : "h-fit"
+                }`}
               >
                 {queue.length === 0 && (
                   <Card className="bg-emerald-500 hover:bg-emerald-600 w-full">
@@ -216,7 +218,9 @@ export default function StreamView({
                           {video.title}
                         </h3>
                         <div
-                          className={`my-auto flex items-center justify-center h-1/2 px-3 bg-emerald-800/30 rounded-lg ${video.haveUpvoted && "bg-emerald-900 text-white"}`}
+                          className={`my-auto flex items-center justify-center h-1/2 px-3 bg-emerald-800/30 rounded-lg ${
+                            video.haveUpvoted && "bg-emerald-900 text-white"
+                          }`}
                         >
                           <button
                             onClick={() =>

@@ -13,7 +13,6 @@
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.6",
     "@radix-ui/react-slot": "^1.1.2",
-    "@repo/ui": "*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.479.0",
@@ -31,11 +30,9 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
-    "@repo/typescript-config": "*",
     "@types/node": "^22.13.9",
-    "@types/react": "19.0.10",
-    "@types/react-dom": "19.0.4",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
     "@types/youtube-player": "^5.5.11",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.21.0",
