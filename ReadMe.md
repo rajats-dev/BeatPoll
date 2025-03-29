@@ -142,6 +142,7 @@ Built with Express.js and Socket.io:
    cd your-repo
    ```
 2. Install dependencies for both frontend and backend: 📦📥💻
+
    ```sh
    # Install frontend dependencies
    cd web
@@ -151,25 +152,31 @@ Built with Express.js and Socket.io:
    cd ../server
    npm install
    ```
-3. Set up environment variables in a `.env` file for the web & server: 🌱🔑📜
-    Web
-    ```env
-    PORT=8000
-    CLIENT_URL=http://localhost:3000
-    Server_URL=http://localhost:8000
-    JWT_SECRET=sgdugg3324234zddfcsafcdsafbasyd793sadfs2y649
-    NODE_ENV=development
-    DATABASE_URL="postgresql://as_owner:npg_wojx0Q6FaiUpep-still/neondb?sslmode=require"
-    ```
 
-    Server
+3. Set up environment variables in a `.env` file for the web & server: 🌱🔑📜
+
+   Web
+
+   ```env
+   PORT=8000
+   CLIENT_URL=http://localhost:3000
+   Server_URL=http://localhost:8000
+   JWT_SECRET=sgdugg3324234zddfcsafcdsafbasyd793sadfs2y649
+   NODE_ENV=development
+   DATABASE_URL="postgresql://as_owner:npg_wojx0Q6FaiUpep-still/neondb?sslmode=require"
+   ```
+
+   Server
+
    ```env
    DATABASE_URL=your_postgresql_connection_string
    JWT_SECRET=your_secret_key
    GOOGLE_CLIENT_ID=your_google_client_id
    GOOGLE_CLIENT_SECRET=your_google_client_secret
    ```
+
 4. Run the development servers: 🚀🖥️⚡
+
    ```sh
    # Start the backend server
    cd server
@@ -191,4 +198,3 @@ Contributions are welcome! Feel free to open issues and pull requests. 🚀🔥�
 ## 📜 License ⚖️📝✅
 
 This project is licensed under the MIT License. 🔓📃💡
-
