@@ -1,22 +1,9 @@
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import React, { useState } from "react";
-import { SingInFlow } from "../types";
 import { signIn } from "next-auth/react";
 import { FcGoogle } from "react-icons/fc";
 import { usePathname } from "next/navigation";
 
-interface SignUpCardProps {
-  setState: (state: SingInFlow) => void;
-}
-
-const SignUpCard = ({ setState }: SignUpCardProps) => {
+const SignUpCard = () => {
   const pathname = usePathname();
   const [isLoading, setloading] = useState(false);
 
@@ -39,23 +26,11 @@ const SignUpCard = ({ setState }: SignUpCardProps) => {
         <button
           disabled={isLoading}
           onClick={handleGoogleLogin}
-          className="w-full relative border-s border-2 border-black"
+          className="w-full flex items-center h-full justify-center gap-4 bg-emerald-800 p-6 rounded-lg text-white"
         >
-          <FcGoogle className="size-5 absolute left-2" />
+          <FcGoogle className="my-auto" />
           Continue with Google
         </button>
-
-        <div>
-          <p className="text-sm text-muted-foreground pt-10">
-            Already have an account?{" "}
-            <span
-              className="text-sky-700 hover:underline cursor-pointer"
-              onClick={() => setState("signIn")}
-            >
-              Sign in
-            </span>
-          </p>
-        </div>
       </div>
     </div>
   );

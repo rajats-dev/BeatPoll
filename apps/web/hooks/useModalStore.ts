@@ -1,13 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from "zustand";
 
 export type ModalType = "auth";
-// | "deleteGroup"
-// | "invite"
-
-// interface ModalData {
-//   group?: any;
-//   messageId?: string;
-// }
 
 interface ModalStore {
   type: ModalType | null;

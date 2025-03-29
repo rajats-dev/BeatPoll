@@ -1,7 +1,6 @@
 import { Server, Socket } from "socket.io";
 import { musicManager, VoteType } from "./controllers/music.controller.js";
 import StreamController from "./controllers/streams.controller.js";
-import { StreamType } from "@prisma/client";
 
 export interface CustomSocket extends Socket {
   userId?: string;
@@ -12,6 +11,10 @@ export const getSocketId = (receiverId: string) => {
 };
 
 export const socketMap = new Map();
+const upvoteCache: Record<
+  string,
+  { upvotes: number; userUpvotes: Set<string> }
+> = {};
 
 export const initSocket = (io: Server) => {
   io.use((socket: CustomSocket, next) => {
@@ -23,50 +26,76 @@ export const initSocket = (io: Server) => {
     next();
   });
 
-  const upVote = async (payload: VoteType, userId: string) => {
-    const upVoteSuccess = await musicManager.upvote(payload);
+  const upVote = async (payload: VoteType) => {
+    const { streamId, userId } = payload;
 
-    // const { creatorId } = payload;
+    if (!upvoteCache[streamId]) {
+      const dbStream = await prisma.stream.findUnique({
+        where: { id: streamId },
+        include: { upvotes: true },
+      });
 
-    // const streams = await StreamController.getStream(creatorId, userId);
-    // console.log("upvote--", userId, streams);
+      upvoteCache[streamId] = {
+        upvotes: dbStream?.upvotes.length || 0,
+        userUpvotes: new Set(dbStream?.upvotes.map((votes) => votes.userId)),
+      };
+    }
 
-    // if (streams) {
-    //   io.emit("list_of_Streams", streams);
-    // }
+    if (!upvoteCache[streamId].userUpvotes.has(userId)) {
+      upvoteCache[streamId].upvotes += 1;
+      upvoteCache[streamId].userUpvotes.add(userId);
+
+      const cachePayload = {
+        streamId,
+        upvotes: upvoteCache[streamId].upvotes,
+        userUpvote: Array.from(upvoteCache[streamId].userUpvotes),
+      };
+
+      // console.log("cachePayload---", cachePayload);
+      io.emit("update_upvotes", cachePayload);
+      await musicManager.upvote(payload);
+    }
   };
 
-  // ///////////////
+  const downVote = async (payload: VoteType) => {
+    const { streamId, userId } = payload;
 
-  const downVote = async (payload: VoteType, userId: string) => {
-    const upVoteSuccess = await musicManager.downVote(payload);
+    if (
+      upvoteCache[streamId] &&
+      upvoteCache[streamId].userUpvotes.has(userId)
+    ) {
+      upvoteCache[streamId].upvotes -= 1;
+      upvoteCache[streamId].userUpvotes.delete(userId);
 
-    // const { creatorId } = payload;
-    // const streams = await StreamController.getStream(creatorId, userId);
-    // console.log("downvote---", streams);
+      const cachePayload = {
+        streamId,
+        upvotes: upvoteCache[streamId].upvotes,
+        userUpvote: Array.from(upvoteCache[streamId].userUpvotes),
+      };
 
-    // if (streams) {
-    //   io.emit("list_of_Streams", streams);
-    // }
+      io.emit("update_upvotes", cachePayload);
+      await musicManager.downVote(payload);
+    }
+  };
+
+  const fetchList = async (
+    socket: CustomSocket,
+    payload: { creatorId: string }
+  ) => {
+    const { creatorId } = payload;
+    const userId = socket.userId;
+
+    const streams = await StreamController.getStream(creatorId, userId);
+    socket.emit("list_of_Streams", streams);
   };
 
   io.on("connection", (socket: CustomSocket) => {
     socketMap.set(socket.userId, socket.id);
-
     console.log(`Client connected: ${socket.id} || useId: ${socket.userId}`);
 
-    socket.on("fetch_stream_list", async (payload) => {
-      const { creatorId } = payload;
-      const userId = socket.userId;
-
-      const streams = await StreamController.getStream(creatorId, userId);
-      console.log("streams--", userId, streams);
-      socket.emit("list_of_Streams", streams);
-    });
-    // musicManager.upvote(socket);
-
-    socket.on("downvote", (payload) => downVote(payload, socket.userId));
-    socket.on("upvote", (payload) => upVote(payload, socket.userId));
+    socket.on("fetch_stream_list", (payload) => fetchList(socket, payload));
+    socket.on("downvote", (payload) => downVote(payload));
+    socket.on("upvote", (payload) => upVote(payload));
     socket.on("disconnect", () => {
       console.log(`Client disconnected: ${socket.id}`);
     });

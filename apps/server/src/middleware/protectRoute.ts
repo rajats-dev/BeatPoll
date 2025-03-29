@@ -7,8 +7,10 @@ const protectRoute = async (
   next: NextFunction
 ) => {
   const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ error: "Unauthorized - No Auth Header" });
+  }
   const token = authHeader.split(" ")[1];
-
   if (!token) {
     return res.status(401).json({ error: "Unauthorized - No token provided" });
   }

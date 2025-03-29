@@ -2,17 +2,7 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  ChevronUp,
-  ChevronDown,
-  Play,
-  Volume2,
-  Maximize2,
-  Settings,
-  Pause,
-  Share2,
-  Loader2,
-} from "lucide-react";
+import { Play, Share2, Loader2, ArrowBigDown, ArrowBigUp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import LiteYouTubeEmbed from "react-lite-youtube-embed";
@@ -48,7 +38,11 @@ export default function StreamView({
     e.preventDefault();
     setLoading(true);
     try {
-      await fetch(`${STREAM_URL}/createStream`, {
+      if (!session?.user?.token) {
+        toast.info("Please try to login first!");
+        return;
+      }
+      const res = await fetch(`${STREAM_URL}/createStream`, {
         method: "POST",
         body: JSON.stringify({
           creatorId: creatorId,
@@ -56,11 +50,17 @@ export default function StreamView({
         }),
         headers: {
           "Content-Type": "application/json",
+          Authorization: session?.user?.token || "",
         },
       });
-      // setQueue([...queue, await res.json()]);
-    } catch (e) {
-      console.log(e);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message); // Throw the error to be caught in catch
+      }
+      toast.success("Creating Stream Success!");
+    } catch (error: any) {
+      toast.error(`Creating Stream Failed!: ${error.message}`);
+      console.log(error.message);
     } finally {
       setLoading(false);
       setInputLink("");
@@ -71,11 +71,6 @@ export default function StreamView({
     if (creatorId && socket) {
       socket.emit("fetch_stream_list", { creatorId: creatorId });
     }
-    // setInterval(() => {
-    //   if (creatorId && socket) {
-    //     socket.emit("fetch_stream_list", { creatorId: creatorId });
-    //   }
-    // }, 10 * 1000);
   }, [socket, creatorId]); // Only runs when `socket` is first initialized
 
   useEffect(() => {
@@ -152,7 +147,6 @@ export default function StreamView({
     socket?.emit(`${isUpvote ? "upvote" : "downvote"}`, {
       streamId: id,
       userId: session?.user?.id,
-      creatorId: creatorId,
     });
   };
 
@@ -165,16 +159,18 @@ export default function StreamView({
           headers: { Authorization: session?.user?.token || "" },
           credentials: "include",
         });
-        // const json = await data.json();
-        // setCurrentVideo(json.stream);
-        // const filterqueue = queue.filter((x) => x.id !== json.stream?.id);
-        // setQueue(filterqueue);
       } catch (e) {
         console.log(e);
       }
       setPlayNextLoader(false);
     }
   };
+
+  // if (queue) {
+  //   return (
+
+  //   );
+  // }
 
   return (
     <div className="from-emerald-950 via-teal-900 to-emerald-800 text-white p-2">
@@ -199,7 +195,7 @@ export default function StreamView({
                   </Card>
                 )}
 
-                {queue.map((video) => (
+                {queue?.map((video) => (
                   <Card key={video.id} className=" bg-emerald-500">
                     <CardContent className="p-4 grid grid-cols-[220px,auto] space-x-4">
                       {video.smallImg ? (
@@ -208,7 +204,7 @@ export default function StreamView({
                           width={210}
                           height={210}
                           alt={`Thumbnail for ${video.title}`}
-                          className="object-contain rounded"
+                          className="object-contain rounded w-auto h-auto"
                         />
                       ) : (
                         <div className="m-auto">
@@ -219,7 +215,9 @@ export default function StreamView({
                         <h3 className="font-semibold text-white p-2 pr-5">
                           {video.title}
                         </h3>
-                        <div className="my-auto flex items-center justify-center h-1/2 px-3 bg-emerald-800/30 rounded-lg">
+                        <div
+                          className={`my-auto flex items-center justify-center h-1/2 px-3 bg-emerald-800/30 rounded-lg ${video.haveUpvoted && "bg-emerald-900 text-white"}`}
+                        >
                           <button
                             onClick={() =>
                               handleVote(
@@ -230,9 +228,9 @@ export default function StreamView({
                             className="flex gap-2 items-center hover:text-emerald-400"
                           >
                             {video.haveUpvoted ? (
-                              <ChevronDown className="h-4 w-4" />
+                              <ArrowBigUp className="h-5 w-5" />
                             ) : (
-                              <ChevronUp className="h-4 w-4" />
+                              <ArrowBigDown className="h-5 w-5" />
                             )}
                             <span>{video.upvotes}</span>
                           </button>

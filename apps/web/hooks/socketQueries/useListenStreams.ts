@@ -1,11 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useSocketContext } from "@/context/SocketContext";
-import { useEffect } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import useStreamQueue, { Video } from "../state/useStreamQueue";
+import { useSession } from "next-auth/react";
+import { CustomSession } from "@/app/api/auth/[...nextauth]/options";
 
-const useListenStreams = (setCurrentVideo: any) => {
+const useListenStreams = (
+  setCurrentVideo: Dispatch<SetStateAction<Video | null>>
+) => {
   const { socket } = useSocketContext();
   const { setQueue } = useStreamQueue();
+  const { data } = useSession();
+  const session: CustomSession | null = data;
+
+  // console.log(queue);
 
   useEffect(() => {
     if (!socket) {
@@ -14,6 +22,7 @@ const useListenStreams = (setCurrentVideo: any) => {
     }
 
     console.log("Initializing stream listener...");
+
     socket.on("list_of_Streams", (payload) => {
       console.log("Client-Stream--", payload);
       const filteredPayload: Video[] = payload?.stream?.sort(
@@ -39,9 +48,30 @@ const useListenStreams = (setCurrentVideo: any) => {
       );
     });
 
+    socket.on("update_upvotes", (payload) => {
+      const { streamId, upvotes, userUpvote } = payload;
+      console.log(payload);
+
+      setQueue((prevQueue) =>
+        prevQueue
+          .map((video) =>
+            video.id == streamId
+              ? {
+                  ...video,
+                  upvotes: upvotes,
+                  haveUpvoted: userUpvote.includes(session?.user?.id),
+                }
+              : video
+          )
+          .sort((a, b) => b.upvotes - a.upvotes)
+      );
+    });
+
     return () => {
       socket.off("list_of_Streams");
       socket.off("add_song");
+      socket.off("next_song");
+      socket.off("update_upvotes");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket]);

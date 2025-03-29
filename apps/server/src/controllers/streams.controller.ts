@@ -3,7 +3,6 @@ import { Request, Response } from "express";
 import prisma from "../config/db.config.js";
 import youtubesearchapi from "youtube-search-api";
 import { io } from "../index.js";
-import { getSocketId, socketMap } from "../socket.js";
 
 const CreateStreamSchema = z.object({
   creatorId: z.string(),
@@ -61,19 +60,6 @@ class StreamController {
         },
       });
 
-      // socketMap.forEach((socketId, userId) => {
-      //   console.log("IDS", socketId, userId);
-
-      //   if (userId !== parseData.creatorId) {
-      //     console.log("emittedID ---", socketId);
-      //     io.to(socketId).emit("add_song", {
-      //       ...streams,
-      //       hasUpvoted: false,
-      //       upvotes: 0,
-      //     });
-      //   }
-      // });
-
       io.emit("add_song", {
         ...streams,
         hasUpvoted: false,
@@ -122,8 +108,6 @@ class StreamController {
           },
         }),
       ]);
-
-      // console.log("---", streams);
 
       const stream = streams.map(({ _count, ...rest }) => ({
         ...rest,

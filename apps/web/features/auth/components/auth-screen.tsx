@@ -1,6 +1,5 @@
 "use client";
 import SignUpCard from "./sign-up-card";
-import useAuthState from "@/hooks/useAuthState";
 import {
   Dialog,
   DialogContent,
@@ -10,8 +9,6 @@ import {
 import { useModal } from "@/hooks/useModalStore";
 
 const AuthScreen = () => {
-  const { pageState, setPageState } = useAuthState();
-
   const { isOpen, onClose, type } = useModal();
   const isModalOpen = isOpen && type == "auth";
 
@@ -21,7 +18,7 @@ const AuthScreen = () => {
         <DialogHeader>
           <DialogTitle>Sign up to continue</DialogTitle>
         </DialogHeader>
-        <SignUpCard setState={setPageState} />
+        <SignUpCard />
       </DialogContent>
     </Dialog>
   );
