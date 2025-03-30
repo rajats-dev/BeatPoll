@@ -42,14 +42,17 @@ export default function StreamView({
         toast.info("Please try to login first!");
         return;
       }
+      const payload = JSON.stringify({
+        creatorId: creatorId,
+        url: inputLink,
+      });
+
       const res = await fetch(`${STREAM_URL}/createStream`, {
         method: "POST",
-        body: JSON.stringify({
-          creatorId: creatorId,
-          url: inputLink,
-        }),
+        body: payload,
         headers: {
           "Content-Type": "application/json",
+          "Content-Length": payload.length.toString(),
           Authorization: session?.user?.token || "",
         },
       });
@@ -165,12 +168,6 @@ export default function StreamView({
       setPlayNextLoader(false);
     }
   };
-
-  // if (queue) {
-  //   return (
-
-  //   );
-  // }
 
   return (
     <div className="from-emerald-950 via-teal-900 to-emerald-800 text-white p-2">
