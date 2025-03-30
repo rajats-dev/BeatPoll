@@ -1,4 +1,5 @@
 import { Server, Socket } from "socket.io";
+import prisma from "./config/db.config.js";
 import { musicManager, VoteType } from "./controllers/music.controller.js";
 import StreamController from "./controllers/streams.controller.js";
 
