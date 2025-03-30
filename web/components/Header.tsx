@@ -1,23 +1,21 @@
 "use client";
-import { Music } from "lucide-react";
 import React from "react";
 import { Button } from "./ui/button";
 import { useModal } from "@/hooks/useModalStore";
-import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { CustomSession } from "@/app/api/auth/[...nextauth]/options";
+import Image from "next/image";
 
 const Header = () => {
   const { onOpen } = useModal();
-  const pathname = usePathname();
   const { data } = useSession();
   const session: CustomSession | null = data;
 
   return (
     <header className="mx-auto px-4 py-4 flex justify-between items-center bg-emerald-950/70 border-r border-emerald-800">
       <div className="flex items-center gap-2">
-        {pathname == "/" && <Music className="h-6 w-6 text-emerald-400" />}
-        <span className="text-xl font-bold text-white"></span>
+        <Image src={"/beatpoll.png"} alt="logo" width={35} height={35} />
+        <span className="text-xl font-bold text-white">BeatPoll</span>
       </div>
       {session?.user ? (
         <Button

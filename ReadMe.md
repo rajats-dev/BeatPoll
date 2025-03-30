@@ -155,7 +155,7 @@ Built with Express.js and Socket.io:
 
 3. Set up environment variables in a `.env` file for the web & server: 🌱🔑📜
 
-   Web
+   Server
 
    ```env
    PORT=8000
@@ -166,7 +166,7 @@ Built with Express.js and Socket.io:
    DATABASE_URL="postgresql://as_owner:npg_wojx0Q6FaiUpep-still/neondb?sslmode=require"
    ```
 
-   Server
+   Web
 
    ```env
    DATABASE_URL=your_postgresql_connection_string

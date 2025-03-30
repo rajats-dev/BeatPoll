@@ -22,11 +22,11 @@ const SignUpCard = () => {
 
   return (
     <div>
-      <div className="flex flex-col gap-2 w-full">
+      <div className="flex flex-col gap-2 ">
         <button
           disabled={isLoading}
           onClick={handleGoogleLogin}
-          className="w-full flex items-center h-full justify-center gap-4 bg-emerald-800 p-6 rounded-lg text-white"
+          className="flex items-center justify-center gap-4 bg-emerald-800 p-6 rounded-lg text-white"
         >
           <FcGoogle className="my-auto" />
           Continue with Google
