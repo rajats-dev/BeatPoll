@@ -20,11 +20,12 @@ class StreamController {
       const data = req.body;
       const parseData = CreateStreamSchema.parse(data);
       const isYt = parseData.url.match(YT_REGEX);
+
       if (!isYt) {
         return res.status(411).json({ message: "Wrong Url Format" });
       }
-      const extractedId = parseData.url.split("?v=")[1];
 
+      const extractedId = parseData.url.split("?v=")[1];
       const ytbRes = await youtubesearchapi.GetVideoDetails(extractedId);
 
       const thumbnails = ytbRes.thumbnail.thumbnails;
