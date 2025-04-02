@@ -25,14 +25,16 @@ class StreamController {
         return res.status(400).json({ message: "Wrong Url Format" });
       }
 
-      const extractedId = parseData.url.split("?v=")[1];
+      const extractedId = parseData?.url.split("?v=")[1];
       const ytbRes = await youtubesearchapi.GetVideoDetails(extractedId);
-
       console.log("ytbRes:", ytbRes);
       const thumbnails = ytbRes?.thumbnail?.thumbnails;
-      thumbnails.sort((a: { width: number }, b: { width: number }) =>
-        a.width < b.width ? -1 : 1
-      );
+
+      if (thumbnails) {
+        thumbnails?.sort((a: { width: number }, b: { width: number }) =>
+          a.width < b.width ? -1 : 1
+        );
+      }
 
       const existingActiveStream = await prisma.stream.count({
         where: {
