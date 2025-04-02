@@ -46,6 +46,16 @@ class StreamController {
         return res.status(409).json({ message: "Users already at limit" });
       }
 
+      const smallImg =
+        thumbnails && thumbnails.length > 1
+          ? thumbnails[thumbnails.length - 2]?.url
+          : thumbnails?.[thumbnails.length - 1]?.url ??
+            "https://us.123rf.com/450wm/fokaspokas/fokaspokas1901/fokaspokas190100268/115137255-associez-des-photos-des-fichiers-image-un-album-d-images-une-simple-ic%C3%B4ne-ic%C3%B4ne-noire-sur-fond.jpg";
+
+      const bigImg =
+        thumbnails?.[thumbnails.length - 1]?.url ??
+        "https://us.123rf.com/450wm/fokaspokas/fokaspokas1901/fokaspokas190100268/115137255-associez-des-photos-des-fichiers-image-un-album-d-images-une-simple-ic%C3%B4ne-ic%C3%B4ne-noire-sur-fond.jpg";
+
       const streams = await prisma.stream.create({
         data: {
           userId: parseData.creatorId,
@@ -53,14 +63,8 @@ class StreamController {
           extractedId,
           type: "Youtube",
           title: ytbRes?.title ?? "Can find video",
-          smallImg:
-            (thumbnails?.length > 1
-              ? thumbnails[thumbnails.length - 2]?.url
-              : thumbnails[thumbnails.length - 1]?.url) ??
-            "https://us.123rf.com/450wm/fokaspokas/fokaspokas1901/fokaspokas190100268/115137255-associez-des-photos-des-fichiers-image-un-album-d-images-une-simple-ic%C3%B4ne-ic%C3%B4ne-noire-sur-fond.jpg",
-          bigImg:
-            thumbnails[thumbnails.length - 1]?.url ??
-            "https://us.123rf.com/450wm/fokaspokas/fokaspokas1901/fokaspokas190100268/115137255-associez-des-photos-des-fichiers-image-un-album-d-images-une-simple-ic%C3%B4ne-ic%C3%B4ne-noire-sur-fond.jpg",
+          smallImg,
+          bigImg,
         },
       });
 
