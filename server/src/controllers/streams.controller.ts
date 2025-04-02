@@ -24,7 +24,7 @@ class StreamController {
       const isYt = parseData.url.match(YT_REGEX);
 
       if (!isYt) {
-        return res.status(411).json({ message: "Wrong Url Format" });
+        return res.status(400).json({ message: "Wrong Url Format" });
       }
 
       const extractedId = parseData.url.split("?v=")[1];
@@ -42,7 +42,7 @@ class StreamController {
       });
 
       if (existingActiveStream && existingActiveStream > MAX_QUEUE_LEN) {
-        return res.status(411).json({ message: "Already at limit" });
+        return res.status(409).json({ message: "Users already at limit" });
       }
 
       const streams = await prisma.stream.create({
@@ -74,7 +74,7 @@ class StreamController {
         .json({ ...streams, hasUpvoted: false, upvotes: 0 });
     } catch (error) {
       console.log(error);
-      return res.status(411).json({ message: "Error while adding Stream!" });
+      return res.status(404).json({ message: "Error while adding Stream!" });
     }
   }
 
@@ -174,6 +174,7 @@ class StreamController {
       });
     } catch (error) {
       console.log(error);
+      return res.status(404).json({ message: "Error In Next Stream!" });
     }
   }
 }

@@ -5,6 +5,6 @@ import protectRoute from "../middleware/protectRoute.js";
 const router = Router();
 
 router.get("/next", protectRoute, StreamController.nextStream);
-router.post("/createStream", StreamController.createStream);
+router.post("/createStream", protectRoute, StreamController.createStream);
 
 export default router;
