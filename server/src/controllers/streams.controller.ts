@@ -18,9 +18,7 @@ class StreamController {
   static async createStream(req: Request, res: Response) {
     try {
       const data = req.body;
-      console.log("data:", data);
       const parseData = CreateStreamSchema.parse(data);
-      console.log("parseData:", parseData);
       const isYt = parseData.url.match(YT_REGEX);
 
       if (!isYt) {
@@ -30,7 +28,8 @@ class StreamController {
       const extractedId = parseData.url.split("?v=")[1];
       const ytbRes = await youtubesearchapi.GetVideoDetails(extractedId);
 
-      const thumbnails = ytbRes.thumbnail.thumbnails;
+      console.log("ytbRes:", ytbRes);
+      const thumbnails = ytbRes?.thumbnail?.thumbnails;
       thumbnails.sort((a: { width: number }, b: { width: number }) =>
         a.width < b.width ? -1 : 1
       );
