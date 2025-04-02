@@ -50,11 +50,10 @@ class StreamController {
         thumbnails && thumbnails.length > 1
           ? thumbnails[thumbnails.length - 2]?.url
           : thumbnails?.[thumbnails.length - 1]?.url ??
-            "https://us.123rf.com/450wm/fokaspokas/fokaspokas1901/fokaspokas190100268/115137255-associez-des-photos-des-fichiers-image-un-album-d-images-une-simple-ic%C3%B4ne-ic%C3%B4ne-noire-sur-fond.jpg";
-
+            "https://cdn.pixabay.com/photo/2017/06/08/17/32/not-found-2384304_1280.jpg";
       const bigImg =
         thumbnails?.[thumbnails.length - 1]?.url ??
-        "https://us.123rf.com/450wm/fokaspokas/fokaspokas1901/fokaspokas190100268/115137255-associez-des-photos-des-fichiers-image-un-album-d-images-une-simple-ic%C3%B4ne-ic%C3%B4ne-noire-sur-fond.jpg";
+        "https://cdn.pixabay.com/photo/2017/06/08/17/32/not-found-2384304_1280.jpg";
 
       const streams = await prisma.stream.create({
         data: {
