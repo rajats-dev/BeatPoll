@@ -203,7 +203,7 @@ export default function StreamView({
                           width={210}
                           height={210}
                           alt={`Thumbnail for ${video.title}`}
-                          className="object-contain rounded w-auto h-auto"
+                          className="object-contain rounded"
                         />
                       ) : (
                         <div className="m-auto">
@@ -211,7 +211,7 @@ export default function StreamView({
                         </div>
                       )}
                       <div className="grid grid-cols-[auto,80px]">
-                        <h3 className="font-semibold text-white p-2 pr-5">
+                        <h3 className="font-semibold text-white p-2 pr-8">
                           {video.title}
                         </h3>
                         <div
