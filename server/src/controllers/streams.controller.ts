@@ -18,7 +18,9 @@ class StreamController {
   static async createStream(req: Request, res: Response) {
     try {
       const data = req.body;
+      console.log("data:", data);
       const parseData = CreateStreamSchema.parse(data);
+      console.log("parseData:", parseData);
       const isYt = parseData.url.match(YT_REGEX);
 
       if (!isYt) {
