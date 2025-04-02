@@ -52,14 +52,14 @@ class StreamController {
           url: parseData.url,
           extractedId,
           type: "Youtube",
-          title: ytbRes.title ?? "Can find video",
+          title: ytbRes?.title ?? "Can find video",
           smallImg:
-            (thumbnails.length > 1
-              ? thumbnails[thumbnails.length - 2].url
-              : thumbnails[thumbnails.length - 1].url) ??
+            (thumbnails?.length > 1
+              ? thumbnails[thumbnails.length - 2]?.url
+              : thumbnails[thumbnails.length - 1]?.url) ??
             "https://us.123rf.com/450wm/fokaspokas/fokaspokas1901/fokaspokas190100268/115137255-associez-des-photos-des-fichiers-image-un-album-d-images-une-simple-ic%C3%B4ne-ic%C3%B4ne-noire-sur-fond.jpg",
           bigImg:
-            thumbnails[thumbnails.length - 1].url ??
+            thumbnails[thumbnails.length - 1]?.url ??
             "https://us.123rf.com/450wm/fokaspokas/fokaspokas1901/fokaspokas190100268/115137255-associez-des-photos-des-fichiers-image-un-album-d-images-une-simple-ic%C3%B4ne-ic%C3%B4ne-noire-sur-fond.jpg",
         },
       });
